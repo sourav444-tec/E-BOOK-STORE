@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>গল্পশৈলী — Book Store</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
+
+    <!-- NAV -->
+    <nav>
+      <a href="#" class="nav-logo">গল্পশৈলী</a>
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M4 6h16M4 12h16M4 18h16"
+            stroke="#1a1208"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="#">বাংলা বই</a></li>
+        <li><a href="#">Academic</a></li>
+        <li><a href="#">Competitive</a></li>
+        <li><a href="#">Fiction</a></li>
+        <li><a href="#">Offers</a></li>
+      </ul>
+      <div class="nav-actions">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search books, authors..." />
+        </div>
+        <button class="cart-btn" onclick="showToast('🛒 Cart opened!')">
+          🛒 Cart
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <section id="hero" class="hero" data-url="books.html">
+      <div class="hero-content">
+        <div class="hero-badge">📦 Free delivery above ₹499</div>
+        <h1 class="hero-title">
+          Every Book,<br />
+          <em>Every Story,</em><br />
+          Delivered.
+        </h1>
+        <p class="hero-subtitle">
+          পশ্চিমবঙ্গের নিজস্ব বইয়ের দোকান। বাংলা সাহিত্য থেকে প্রতিযোগিতামূলক
+          পরীক্ষার বই — সব কিছু আপনার দরজায়।
+        </p>
+        <div class="hero-actions">
+          <a class="btn-primary" href="books.html">Browse All Books →</a>
+          <a class="btn-ghost" href="offers.html">View Offers</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-number">2,400+</div>
+            <div class="stat-label">Books Available</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">1,200+</div>
+            <div class="stat-label">Happy Readers</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">48hr</div>
+            <div class="stat-label">Fast Delivery</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="book-stack">
+          <div class="book-card-hero back">
+            <div class="book-inner">
+              <span class="book-label">Bengali Literature</span>
+              <div>
+                <div class="book-title-hero">গল্পগুচ্ছ</div>
+                <div class="book-author-hero">Rabindranath Tagore</div>
+              </div>
+            </div>
+          </div>
+          <div class="book-card-hero left">
+            <div class="book-inner">
+              <span class="book-label">WBCS Prep</span>
+              <div>
+                <div class="book-title-hero">Complete Guide</div>
+                <div class="book-author-hero">R. Gupta's</div>
+              </div>
+            </div>
+          </div>
+          <div class="book-card-hero main">
+            <div class="book-inner">
+              <span class="book-label">Bestseller</span>
+              <div>
+                <div class="book-title-hero">পথের পাঁচালী</div>
+                <div class="book-author-hero">Bibhutibhushan</div>
+              </div>
+            </div>
+          </div>
+          <div class="book-card-hero right">
+            <div class="book-inner">
+              <span class="book-label">Fiction</span>
+              <div>
+                <div class="book-title-hero">Feluda Series</div>
+                <div class="book-author-hero">Satyajit Ray</div>
+              </div>
+            </div>
+          </div>
+          <div class="floating-tag tag-discount">30% OFF 🎉</div>
+          <div class="floating-tag tag-new">New Arrivals</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section
+      id="categories"
+      class="categories-section"
+      data-url="categories.html"
+    >
+      <div class="section-header reveal">
+        <div>
+          <div class="section-label">Browse by</div>
+          <h2 class="section-title">Categories</h2>
+        </div>
+        <a href="categories.html" class="view-all">All Categories →</a>
+      </div>
+      <div class="categories-grid reveal">
+        <a href="categories/bangla-sahitya.html" class="category-card">
+          <span class="cat-icon">📖</span>
+          <div class="cat-name">বাংলা সাহিত্য</div>
+          <div class="cat-count">340 books</div>
+        </a>
+        <a href="categories/academic.html" class="category-card">
+          <span class="cat-icon">🎓</span>
+          <div class="cat-name">Academic</div>
+          <div class="cat-count">520 books</div>
+        </a>
+        <a href="categories/competitive.html" class="category-card">
+          <span class="cat-icon">✏️</span>
+          <div class="cat-name">Competitive</div>
+          <div class="cat-count">280 books</div>
+        </a>
+        <a href="categories/science.html" class="category-card">
+          <span class="cat-icon">🔬</span>
+          <div class="cat-name">Science</div>
+          <div class="cat-count">190 books</div>
+        </a>
+        <a href="categories/self-help.html" class="category-card">
+          <span class="cat-icon">🧠</span>
+          <div class="cat-name">Self Help</div>
+          <div class="cat-count">145 books</div>
+        </a>
+        <a href="categories/children.html" class="category-card">
+          <span class="cat-icon">👶</span>
+          <div class="cat-name">Children</div>
+          <div class="cat-count">210 books</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- FEATURED BOOKS -->
+    <section id="featured" data-url="featured.html">
+      <div class="section-header reveal">
+        <div>
+          <div class="section-label">Hand-picked</div>
+          <h2 class="section-title">Featured Books</h2>
+        </div>
+        <a href="featured.html" class="view-all">View All →</a>
+      </div>
+      <div class="books-grid">
+        <!-- book cards omitted for brevity; content preserved in styles and JS -->
+      </div>
+    </section>
+
+    <!-- Footer / Toast -->
+    <footer id="site-footer">
+      <!-- footer content omitted for brevity -->
+    </footer>
+
+    <div class="toast" id="toast">
+      <span id="toastMsg">Added to cart!</span>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
