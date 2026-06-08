@@ -11,14 +11,16 @@ document.addEventListener("mousemove", (e) => {
   mouseY = e.clientY;
 
   if (cursor) {
-    cursor.style.left = mouseX - 6 + "px";
-    cursor.style.top = mouseY - 6 + "px";
+    const cx = cursor.offsetWidth / 2 || 10;
+    cursor.style.left = mouseX - cx + "px";
+    cursor.style.top = mouseY - cx + "px";
   }
 });
 
 function animateRing() {
-  ringX += (mouseX - ringX - 18) * 0.12;
-  ringY += (mouseY - ringY - 18) * 0.12;
+  const rx = ring ? ring.offsetWidth / 2 : 18;
+  ringX += (mouseX - ringX - rx) * 0.12;
+  ringY += (mouseY - ringY - rx) * 0.12;
   if (ring) {
     ring.style.left = ringX + "px";
     ring.style.top = ringY + "px";
@@ -38,14 +40,197 @@ document.querySelectorAll("button, a, input").forEach((el) => {
   });
 });
 
-// Cart counter
-let cartItems = 0;
-function addToCart() {
-  cartItems++;
+// Cart management (persisted)
+const CART_KEY = "gstore_cart_v1";
+let cart = [];
+try {
+  cart = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+} catch (e) {
+  cart = [];
+}
+
+function saveCart() {
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  updateCartCount();
+  renderCart();
+}
+
+function updateCartCount() {
   const cartEl = document.getElementById("cartCount");
-  if (cartEl) cartEl.textContent = cartItems;
+  if (!cartEl) return;
+  const total = cart.reduce((s, i) => s + (i.qty || 0), 0);
+  cartEl.textContent = total;
+}
+
+function addToCart(item) {
+  // If no item supplied, increment a generic counter (backwards-compatible)
+  if (!item) {
+    item = {
+      id: "book-" + Date.now(),
+      title: "Book",
+      author: "Unknown",
+      price: 199,
+      qty: 1,
+      img: "",
+    };
+  }
+  const existing = cart.find((c) => c.id === item.id);
+  if (existing) {
+    existing.qty = (existing.qty || 0) + (item.qty || 1);
+  } else {
+    cart.push({ ...item, qty: item.qty || 1 });
+  }
+  saveCart();
   showToast("✅ বই cart-এ যোগ হয়েছে!");
 }
+
+function removeFromCart(id) {
+  cart = cart.filter((i) => i.id !== id);
+  saveCart();
+}
+
+function changeQty(id, delta) {
+  const it = cart.find((i) => i.id === id);
+  if (!it) return;
+  it.qty = Math.max(0, (it.qty || 0) + delta);
+  if (it.qty === 0) removeFromCart(id);
+  else saveCart();
+}
+
+function clearCart() {
+  cart = [];
+  saveCart();
+  showToast("Cart cleared");
+}
+
+function cartSubtotal() {
+  return cart.reduce((s, i) => s + (i.price || 0) * (i.qty || 0), 0);
+}
+
+function cartSummaryText() {
+  if (!cart.length) return "My cart is empty.";
+  const lines = cart.map(
+    (item) => `- ${item.title} x${item.qty || 1} (₹${item.price || 0})`,
+  );
+  lines.push(`Subtotal: ₹${cartSubtotal()}`);
+  return lines.join("\n");
+}
+
+// Drawer controls & render
+const cartBtnEl = document.getElementById("cartBtn");
+const cartDrawerEl = document.getElementById("cartDrawer");
+const cartOverlayEl = document.getElementById("cartOverlay");
+
+function openCart() {
+  if (cartDrawerEl) cartDrawerEl.setAttribute("aria-hidden", "false");
+  if (cartOverlayEl) {
+    cartOverlayEl.hidden = false;
+    cartOverlayEl.style.opacity = "1";
+  }
+  renderCart();
+}
+
+function closeCart() {
+  if (cartDrawerEl) cartDrawerEl.setAttribute("aria-hidden", "true");
+  if (cartOverlayEl) {
+    cartOverlayEl.style.opacity = "0";
+    setTimeout(() => (cartOverlayEl.hidden = true), 250);
+  }
+}
+
+function renderCart() {
+  const list = document.getElementById("cartItems");
+  const empty = document.getElementById("cartEmpty");
+  const subtotalEl = document.getElementById("cartSubtotal");
+  const totalEl = document.getElementById("cartTotal");
+  if (!list || !empty || !subtotalEl) return;
+  list.innerHTML = "";
+  if (!cart || cart.length === 0) {
+    empty.style.display = "block";
+    subtotalEl.textContent = "₹0";
+    if (totalEl) totalEl.textContent = "₹0";
+    return;
+  }
+  empty.style.display = "none";
+  cart.forEach((it) => {
+    const li = document.createElement("li");
+    li.className = "cart-item";
+    li.innerHTML = `
+      <img src="${it.img || "https://via.placeholder.com/56x72?text=Book"}" alt="${it.title}" />
+      <div class="meta">
+        <div class="title">${it.title}</div>
+        <div class="author">${it.author || ""}</div>
+        <div class="qty">
+          <button data-action="dec" data-id="${it.id}">−</button>
+          <div class="count">${it.qty}</div>
+          <button data-action="inc" data-id="${it.id}">+</button>
+          <button data-action="remove" data-id="${it.id}" style="margin-left:8px;background:transparent;border:none;cursor:pointer;color:var(--muted);">Remove</button>
+        </div>
+      </div>
+      <div class="price">₹${(it.price || 0) * (it.qty || 0)}</div>
+    `;
+    list.appendChild(li);
+  });
+  const subtotal = cartSubtotal();
+  subtotalEl.textContent = "₹" + subtotal;
+  if (totalEl) totalEl.textContent = "₹" + subtotal;
+  updateCartCount();
+}
+
+// Wire drawer buttons after DOM ready
+document.addEventListener("DOMContentLoaded", () => {
+  if (cartBtnEl) cartBtnEl.addEventListener("click", openCart);
+  const closeBtn = document.getElementById("closeCart");
+  if (closeBtn) closeBtn.addEventListener("click", closeCart);
+  if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
+  const clearBtn = document.getElementById("clearCart");
+  if (clearBtn)
+    clearBtn.addEventListener("click", () => {
+      clearCart();
+    });
+  const checkout = document.getElementById("checkoutBtn");
+  if (checkout)
+    checkout.addEventListener("click", () => {
+      if (!cart || cart.length === 0) return showToast("Cart is empty");
+      const text = encodeURIComponent(
+        `Hi গল্পশৈলী, I want to order:\n${cartSummaryText()}`,
+      );
+      window.open(
+        `https://wa.me/919876543210?text=${text}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
+      showToast("Opening WhatsApp checkout...");
+    });
+
+  document.querySelectorAll(".add-to-cart").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      addToCart({
+        id: btn.dataset.id,
+        title: btn.dataset.title,
+        author: btn.dataset.author,
+        price: Number(btn.dataset.price || 0),
+        img: btn.dataset.img || "",
+        qty: 1,
+      });
+      openCart();
+    });
+  });
+
+  // delegate qty/remove clicks
+  document.getElementById("cartItems")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-id");
+    const action = btn.getAttribute("data-action");
+    if (action === "inc") changeQty(id, 1);
+    if (action === "dec") changeQty(id, -1);
+    if (action === "remove") removeFromCart(id);
+  });
+
+  // initial render
+  renderCart();
+});
 
 // Toast
 function showToast(msg) {
@@ -163,3 +348,40 @@ document.querySelectorAll(".wishlist-btn").forEach((btn) => {
     if (e.key === "Escape") setOpen(false);
   });
 })();
+
+// Open most links in a new tab by default, unless they are hashes or explicitly marked
+(function () {
+  document.querySelectorAll("a[href]").forEach((a) => {
+    const href = a.getAttribute("href");
+    if (!href) return;
+    const lower = href.toLowerCase();
+    // skip internal anchors and protocols that should stay in-place
+    if (
+      lower.startsWith("#") ||
+      lower.startsWith("mailto:") ||
+      lower.startsWith("tel:")
+    )
+      return;
+    // allow explicitly keeping same-tab behavior using data-same-tab
+    if (a.hasAttribute("data-same-tab")) return;
+    // set target to _blank and add safe rel
+    if (!a.hasAttribute("target")) a.setAttribute("target", "_blank");
+    const rel = a.getAttribute("rel") || "";
+    if (!/noopener/i.test(rel))
+      a.setAttribute("rel", (rel + " noopener noreferrer").trim());
+  });
+})();
+
+// Copy address button handler
+const copyBtn = document.getElementById("copyAddress");
+if (copyBtn) {
+  copyBtn.addEventListener("click", () => {
+    const addrEl = document.getElementById("footerAddress");
+    const text = addrEl ? addrEl.innerText.trim() : "";
+    if (!text) return showToast("No address to copy");
+    navigator.clipboard
+      .writeText(text)
+      .then(() => showToast("Address copied to clipboard"))
+      .catch(() => showToast("Failed to copy address"));
+  });
+}
